@@ -1,6 +1,7 @@
 #include "lst_timer.h"
 #include "../http/http_conn.h"
 
+// 符合RAII
 sort_timer_lst::sort_timer_lst()
 {
     head = NULL;
@@ -17,6 +18,7 @@ sort_timer_lst::~sort_timer_lst()
     }
 }
 
+// 升序
 void sort_timer_lst::add_timer(util_timer *timer)
 {
     if (!timer)
@@ -35,7 +37,7 @@ void sort_timer_lst::add_timer(util_timer *timer)
         head = timer;
         return;
     }
-    add_timer(timer, head);
+    add_timer(timer, head);//没插入成功，调用双参add_timer()继续插入
 }
 void sort_timer_lst::adjust_timer(util_timer *timer)
 {
@@ -62,6 +64,33 @@ void sort_timer_lst::adjust_timer(util_timer *timer)
         add_timer(timer, timer->next);
     }
 }
+//私有双参add_timer()，双向升序链表插入函数
+void sort_timer_lst::add_timer(util_timer *timer, util_timer *lst_head)
+{
+    util_timer *prev = lst_head;
+    util_timer *tmp = prev->next;
+    while (tmp)
+    {
+        if (timer->expire < tmp->expire)
+        {
+            prev->next = timer;
+            timer->next = tmp;
+            tmp->prev = timer;
+            timer->prev = prev;
+            break;
+        }
+        prev = tmp;
+        tmp = tmp->next;
+    }
+    if (!tmp)
+    {
+        prev->next = timer;
+        timer->prev = prev;
+        timer->next = NULL;
+        tail = timer;
+    }
+}
+
 void sort_timer_lst::del_timer(util_timer *timer)
 {
     if (!timer)
@@ -93,6 +122,8 @@ void sort_timer_lst::del_timer(util_timer *timer)
     timer->next->prev = timer->prev;
     delete timer;
 }
+
+// 扫荡函数
 void sort_timer_lst::tick()
 {
     if (!head)
@@ -100,7 +131,7 @@ void sort_timer_lst::tick()
         return;
     }
     
-    time_t cur = time(NULL);
+    time_t cur = time(NULL);// 看看现在几点了
     util_timer *tmp = head;
     while (tmp)
     {
@@ -108,42 +139,17 @@ void sort_timer_lst::tick()
         {
             break;
         }
-        tmp->cb_func(tmp->user_data);
+        tmp->cb_func(tmp->user_data);//到期了，执行回调函数，关闭该连接
         head = tmp->next;
         if (head)
         {
             head->prev = NULL;
         }
-        delete tmp;
+        delete tmp;//delete内存
         tmp = head;
     }
 }
 
-void sort_timer_lst::add_timer(util_timer *timer, util_timer *lst_head)
-{
-    util_timer *prev = lst_head;
-    util_timer *tmp = prev->next;
-    while (tmp)
-    {
-        if (timer->expire < tmp->expire)
-        {
-            prev->next = timer;
-            timer->next = tmp;
-            tmp->prev = timer;
-            timer->prev = prev;
-            break;
-        }
-        prev = tmp;
-        tmp = tmp->next;
-    }
-    if (!tmp)
-    {
-        prev->next = timer;
-        timer->prev = prev;
-        timer->next = NULL;
-        tail = timer;
-    }
-}
 
 void Utils::init(int timeslot)
 {
@@ -151,6 +157,7 @@ void Utils::init(int timeslot)
 }
 
 //对文件描述符设置非阻塞
+//调用Linux底层函数fcntl()函数，将fd的原本属性取出，强行换成O_NONBLOCK
 int Utils::setnonblocking(int fd)
 {
     int old_option = fcntl(fd, F_GETFL);
@@ -173,7 +180,7 @@ void Utils::addfd(int epollfd, int fd, bool one_shot, int TRIGMode)
     if (one_shot)
         event.events |= EPOLLONESHOT;
     epoll_ctl(epollfd, EPOLL_CTL_ADD, fd, &event);
-    setnonblocking(fd);
+    setnonblocking(fd);//只要fd注册进了epoll，就一定是非阻塞的
 }
 
 //信号处理函数
@@ -215,10 +222,12 @@ int *Utils::u_pipefd = 0;
 int Utils::u_epollfd = 0;
 
 class Utils;
+
+//回调函数
 void cb_func(client_data *user_data)
 {
-    epoll_ctl(Utils::u_epollfd, EPOLL_CTL_DEL, user_data->sockfd, 0);
+    epoll_ctl(Utils::u_epollfd, EPOLL_CTL_DEL, user_data->sockfd, 0);// 1. 从雷达上抹除
     assert(user_data);
-    close(user_data->sockfd);
-    http_conn::m_user_count--;
+    close(user_data->sockfd);// 2. 物理断开连接
+    http_conn::m_user_count--;// 3. TCP连接减一
 }

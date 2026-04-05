@@ -24,13 +24,18 @@
 #include <time.h>
 #include "../log/log.h"
 
+// util_timer：定义了到期时间、回调函数、前后指针、client_data
+// sort_timer_lst：维护双向升序链表
+// Utils：系统级通信中枢
+
+
 class util_timer;
 
 struct client_data
 {
-    sockaddr_in address;
+    sockaddr_in address;// TCP连接的IP和端口
     int sockfd;
-    util_timer *timer;
+    util_timer *timer;// 指向该连接fd的倒计时器
 };
 
 class util_timer
@@ -39,10 +44,10 @@ public:
     util_timer() : prev(NULL), next(NULL) {}
 
 public:
-    time_t expire;
+    time_t expire;//到期时间
     
-    void (* cb_func)(client_data *);
-    client_data *user_data;
+    void (* cb_func)(client_data *);//回调函数
+    client_data *user_data;// 绑定TCP连接
     util_timer *prev;
     util_timer *next;
 };
@@ -53,10 +58,10 @@ public:
     sort_timer_lst();
     ~sort_timer_lst();
 
-    void add_timer(util_timer *timer);
-    void adjust_timer(util_timer *timer);
+    void add_timer(util_timer *timer);//按时间顺序插进链表
+    void adjust_timer(util_timer *timer);//请求活动后，往后面挪
     void del_timer(util_timer *timer);
-    void tick();
+    void tick();//清扫僵尸连接
 
 private:
     void add_timer(util_timer *timer, util_timer *lst_head);
@@ -80,7 +85,7 @@ public:
     void addfd(int epollfd, int fd, bool one_shot, int TRIGMode);
 
     //信号处理函数
-    static void sig_handler(int sig);
+    static void sig_handler(int sig);// 捕捉操作系统发来的信号
 
     //设置信号函数
     void addsig(int sig, void(handler)(int), bool restart = true);
@@ -93,7 +98,7 @@ public:
 public:
     static int *u_pipefd;
     sort_timer_lst m_timer_lst;
-    static int u_epollfd;
+    static int u_epollfd;//epoll
     int m_TIMESLOT;
 };
 

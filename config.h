@@ -1,8 +1,10 @@
 #ifndef CONFIG_H
 #define CONFIG_H
 
-#include "webserver.h"
+//#include "webserver.h"   IWYU (Include What You Use）原则
 
+#include <unistd.h>    // 用于 getopt, optarg
+#include <cstdlib>     // 用于 atoi
 using namespace std;
 
 class Config

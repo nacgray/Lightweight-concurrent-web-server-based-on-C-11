@@ -18,7 +18,7 @@ connection_pool::connection_pool()
 
 connection_pool *connection_pool::GetInstance()
 {
-	static connection_pool connPool;
+	static connection_pool connPool;// 静态局部变量，全程序只有这一份
 	return &connPool;
 }
 
@@ -32,16 +32,18 @@ void connection_pool::init(string url, string User, string PassWord, string DBNa
 	m_DatabaseName = DBName;
 	m_close_log = close_log;
 
+	// 建立MaxConn次数据库TCP长连接
 	for (int i = 0; i < MaxConn; i++)
 	{
 		MYSQL *con = NULL;
-		con = mysql_init(con);
+		con = mysql_init(con);// 负责在本地内存里划出地盘
 
 		if (con == NULL)
 		{
 			LOG_ERROR("MySQL Error");
-			exit(1);
+			exit(1);//数据库连接失败，立马退出整个webserver进程
 		}
+		// 负责利用这块地盘，发起真实的 TCP 网络通信，去和远端的数据库完成握手。建立数据库TCP长连接
 		con = mysql_real_connect(con, url.c_str(), User.c_str(), PassWord.c_str(), DBName.c_str(), Port, NULL, 0);
 
 		if (con == NULL)
@@ -49,13 +51,13 @@ void connection_pool::init(string url, string User, string PassWord, string DBNa
 			LOG_ERROR("MySQL Error");
 			exit(1);
 		}
-		connList.push_back(con);
+		connList.push_back(con);// 把所有成功的连接指针塞进C++ list（双向链表）里
 		++m_FreeConn;
 	}
 
-	reserve = sem(m_FreeConn);
+	reserve = sem(m_FreeConn);// reserve 是一个信号量，它的值代表有几个可以连接的数据库
 
-	m_MaxConn = m_FreeConn;
+	m_MaxConn = m_FreeConn;// 建立连接的数量
 }
 
 
@@ -67,17 +69,18 @@ MYSQL *connection_pool::GetConnection()
 	if (0 == connList.size())
 		return NULL;
 
-	reserve.wait();
+	reserve.wait();//>0苏醒 =0睡眠
 	
-	lock.lock();
+	lock.lock();//上锁，建立临界区
 
-	con = connList.front();
+	con = connList.front();// 从存储数据库连接池的双向链表中返回一个可用连接
 	connList.pop_front();
 
+	// 更新使用和空闲连接数
 	--m_FreeConn;
 	++m_CurConn;
 
-	lock.unlock();
+	lock.unlock();// 解锁
 	return con;
 }
 
@@ -89,13 +92,13 @@ bool connection_pool::ReleaseConnection(MYSQL *con)
 
 	lock.lock();
 
-	connList.push_back(con);
+	connList.push_back(con);// 将数据库返回到数据库连接池中
 	++m_FreeConn;
 	--m_CurConn;
 
 	lock.unlock();
 
-	reserve.post();
+	reserve.post();// 更新信号量
 	return true;
 }
 

@@ -14,10 +14,11 @@
 
 #include "./threadpool/threadpool.h"
 #include "./http/http_conn.h"
-
+// #include "./timer/lst_timer.h"
+#include "timer/heaptimer.h"//最小堆
 const int MAX_FD = 65536;           //最大文件描述符
 const int MAX_EVENT_NUMBER = 10000; //最大事件数
-const int TIMESLOT = 5;             //最小超时单位
+const int TIMESLOT = 1;             //最小超时单位
 
 class WebServer
 {
@@ -28,16 +29,15 @@ public:
     void init(int port , string user, string passWord, string databaseName,
               int log_write , int opt_linger, int trigmode, int sql_num,
               int thread_num, int close_log, int actor_model);
-
-    void thread_pool();
-    void sql_pool();
-    void log_write();
-    void trig_mode();
-    void eventListen();
-    void eventLoop();
+    void log_write();//1.日志系统
+    void sql_pool();//2.数据库
+    void thread_pool();//3.线程池
+    void trig_mode();//4.触发模式
+    void eventListen();//5.监听
+    void eventLoop();//6.运行
     void timer(int connfd, struct sockaddr_in client_address);
-    void adjust_timer(util_timer *timer);
-    void deal_timer(util_timer *timer, int sockfd);
+    void adjust_timer(int fd);
+    void deal_timer(int fd);
     bool dealclientdata();
     bool dealwithsignal(bool& timeout, bool& stop_server);
     void dealwithread(int sockfd);
@@ -47,7 +47,7 @@ public:
     //基础
     int m_port;
     char *m_root;
-    int m_log_write;
+    int m_log_write; // 日志
     int m_close_log;
     int m_actormodel;
 
@@ -72,11 +72,12 @@ public:
     int m_listenfd;
     int m_OPT_LINGER;
     int m_TRIGMode;
-    int m_LISTENTrigmode;
-    int m_CONNTrigmode;
+    int m_LISTENTrigmode;// LT 
+    int m_CONNTrigmode;  // ET
 
     //定时器相关
-    client_data *users_timer;
+    // client_data *users_timer;
     Utils utils;
+    HeapTimer m_timer;
 };
 #endif

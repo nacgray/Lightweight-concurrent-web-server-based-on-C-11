@@ -1,23 +1,135 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <meta charset="UTF-8">
-        <title>Sign in</title>
-    </head>
-    <body>
-<br/>
-<br/>
-    <div align="center"><font size="5"> <strong>登录</strong></font></div>
-    <br/>
-        <div class="login">
-                <form action="2CGISQL.cgi" method="post">
-                        <div align="center"><input type="text" name="user" placeholder="用户名" required="required"></div><br/>
-                        <div align="center"><input type="password" name="password" placeholder="登录密码" required="required"></div><br/>
-                        <div align="center"><button type="submit">确定</button></div>
-                </form>
-		<br/>
-               <div  align="center">提示：用户名或密码错误，请重试</div>
-        </div>
-    </body>
-</html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TinyWebServer - 登录失败</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-image: url('background.png'); 
+            background-size: cover;      
+            background-position: center; 
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: #ffffff;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden; 
+        }
+
+        /* 登录卡片 (附带微弱的红色警示光晕) */
+        .login-card {
+            background: rgba(0, 0, 0, 0.45); 
+            backdrop-filter: blur(15px);     
+            -webkit-backdrop-filter: blur(15px); 
+            border: 1px solid rgba(255, 77, 77, 0.3); /* 边框变成淡红色 */
+            border-radius: 20px;
+            padding: 50px 60px;
+            width: 400px; 
+            box-shadow: 0 15px 40px rgba(255, 77, 77, 0.15), 0 25px 50px rgba(0, 0, 0, 0.6);
+            text-align: center;
+            animation: shake 0.5s ease-out; /* 载入时加入震动反馈效果 */
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            letter-spacing: 2px;
+            margin-bottom: 30px;
+            color: #ffffff;
+            text-shadow: 0 0 15px rgba(255, 255, 255, 0.5); 
+        }
+
+        .input-group { margin-bottom: 20px; }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 15px 20px;
+            background: rgba(255, 255, 255, 0.08); 
+            border: 1px solid rgba(255, 255, 255, 0.2); 
+            border-radius: 10px;
+            color: #ffffff;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+        }
+
+        input::placeholder { color: #aaaaaa; }
+
+        input:focus {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: #007acc;
+            box-shadow: 0 0 15px rgba(0, 122, 204, 0.4);
+        }
+
+        button {
+            width: 100%;
+            padding: 15px;
+            margin-top: 10px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            outline: none;
+            letter-spacing: 2px;
+            background: rgba(0, 122, 204, 0.8); 
+            color: #ffffff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(5px);
+        }
+
+        button:hover {
+            background: rgba(0, 122, 204, 1); 
+            box-shadow: 0 0 20px rgba(0, 122, 204, 0.6);
+            transform: translateY(-2px); 
+        }
+
+        /* 专门定制的错误提示信息样式 */
+        .error-message {
+            margin-top: 25px;
+            color: #ff4d4d; /* 警示红 */
+            font-size: 0.95rem;
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-shadow: 0 0 10px rgba(255, 77, 77, 0.4); /* 红色发光字 */
+        }
+
+        /* 登录失败时的左右震动动画 */
+        @keyframes shake {
+            0% { transform: translateX(0); }
+            20% { transform: translateX(-10px); }
+            40% { transform: translateX(10px); }
+            60% { transform: translateX(-10px); }
+            80% { transform: translateX(10px); }
+            100% { transform: translateX(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-card">
+        <h1>系统登录</h1>
+        
+        <form action="login.cgi" method="post">
+            <div class="input-group">
+                <input type="text" name="user" placeholder="请输入用户名" required="required" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <input type="password" name="password" placeholder="请输入登录密码" required="required">
+            </div>
+            <button type="submit">确 定</button>
+        </form>
+
+        <div class="error-message">
+            ⚠️ 提示：用户名或密码错误，请重试
+        </div>
+    </div>
+
+</body>
+</html>
