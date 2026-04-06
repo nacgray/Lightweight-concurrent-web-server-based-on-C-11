@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TinyWebServer - 最小堆定时器模块</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-image: url('background.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+            overflow-y: auto;
+        }
+
+        /* 滚动条美化 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 204, 0.4);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 255, 204, 0.8);
+        }
+
+        /* 左上角返回按钮 */
+        .back-btn {
+            position: absolute;
+            top: 40px;
+            left: 50px;
+            padding: 10px 25px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 30px;
+            color: #ffffff;
+            font-weight: 600;
+            text-decoration: none;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #00ffcc;
+            color: #00ffcc;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.4);
+            transform: translateX(-5px);
+        }
+
+        /* 主容器 */
+        .layout-container {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+            animation: fadeInScale 0.8s ease-out;
+            overflow: hidden;
+        }
+
+        /* 左侧：架构图展示区 */
+        .arch-image-box {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        .arch-image-box img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 255, 204, 0.2);
+            transition: transform 0.5s ease;
+            border: 1px solid rgba(0, 255, 204, 0.3);
+        }
+
+        .arch-image-box:hover img {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(0, 255, 204, 0.4);
+        }
+
+        /* 右侧：硬核文字介绍区 */
+        .intro-text-box {
+            flex: 1.2;
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .intro-text-box h1 {
+            font-size: 2.5rem;
+            color: #00ffcc;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 10px rgba(0, 255, 204, 0.4);
+        }
+
+        .intro-text-box .subtitle {
+            font-size: 1.1rem;
+            color: #aaaaaa;
+            margin-bottom: 30px;
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 15px;
+        }
+
+        .intro-text-box p {
+            font-size: 1rem;
+            color: #dddddd;
+            line-height: 1.8;
+            margin-bottom: 20px;
+            text-align: justify;
+        }
+
+        /* 特性列表项 */
+        .feature-list {
+            list-style: none;
+            margin-top: 10px;
+        }
+
+        .feature-list li {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+
+        .feature-list li::before {
+            content: '⚡';
+            position: absolute;
+            left: 0;
+            top: 2px;
+            font-size: 1.1rem;
+            filter: drop-shadow(0 0 5px rgba(0, 255, 204, 0.8));
+        }
+
+        .highlight {
+            color: #ffffff;
+            font-weight: bold;
+            text-shadow: 0 0 8px rgba(0, 255, 204, 0.6);
+        }
+
+        /* 动画定义 */
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 900px) {
+            .layout-container {
+                flex-direction: column;
+            }
+
+            .arch-image-box {
+                border-right: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                padding: 30px;
+            }
+
+            .intro-text-box {
+                padding: 30px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <a href="frame.html" class="back-btn">⬅ 返回架构蓝图</a>
+
+    <div class="layout-container">
+
+        <div class="arch-image-box">
+            <img src="timer_arch.jpg" alt="最小堆定时器架构图">
+        </div>
+
+        <div class="intro-text-box">
+            <h1>最小堆定时器</h1>
+            <div class="subtitle">Min-Heap Timer Management Module</div>
+
+            <p>在网络并发编程中，服务器必须具备及时剔除“非活跃连接（死连接）”的能力，以防止系统套接字资源被恶意耗尽。原版项目采用 <span class="highlight">双向升序链表</span>，其 O(N)
+                的时间复杂度在应对高频并发时会引发严重的 CPU 算力浪费。</p>
+
+            <p>本模块经过彻底重构，引入了基于完全二叉树的 <span class="highlight">最小堆（Min-Heap）</span> 结构，完成了跨越式的性能升级：</p>
+
+            <ul class="feature-list">
+                <li><span class="highlight">O(log N) 极速调整：</span>
+                    无论是新连接插入（sift_up）还是活跃连接续期（sift_down），操作复杂度均被压榨至对数级别。即使在千万级并发下，调整一次定时器也仅需极少的比较操作。</li>
+                <li><span class="highlight">O(1) 精准心跳检测：</span> 最小堆的堆顶永远是“最早过期的连接”。每次触发 SIGALRM
+                    心跳时，只需检查数组首元素（front），若未超时，则直接返回，避免了无意义的遍历。</li>
+                <li><span class="highlight">哈希映射消除遍历：</span> 引入 std::unordered_map 建立 File Descriptor (fd)
+                    到堆数组索引的直接映射，实现了真正的 O(1) 节点定位。</li>
+                <li><span class="highlight">Modern C++ 闭包回调：</span> 摒弃了传统的 void* 万能指针与繁杂的 client_data 结构体，采用
+                    std::function 与 std::bind 将任务执行流与当前连接参数优雅封装。</li>
+            </ul>
+        </div>
+
+    </div>
+
+</body>
+
+</html>

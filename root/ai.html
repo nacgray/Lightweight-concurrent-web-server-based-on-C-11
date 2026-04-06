@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TinyWebServer - AI 导航阵列</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-image: url('background.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+            /* 允许页面滚动，适合展示大量导航卡片 */
+            overflow-y: auto;
+        }
+
+        /* 隐藏原生滚动条，定制科技感滚动条 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 204, 0.4);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 255, 204, 0.8);
+        }
+
+        /* 左上角返回按钮 */
+        .back-btn {
+            position: absolute;
+            top: 40px;
+            left: 50px;
+            padding: 10px 25px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 30px;
+            color: #ffffff;
+            font-weight: 600;
+            text-decoration: none;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #00ffcc;
+            color: #00ffcc;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.4);
+            transform: translateX(-5px);
+        }
+
+        /* 页面标题 */
+        .header-section {
+            text-align: center;
+            margin-bottom: 40px;
+            margin-top: 20px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .header-section h1 {
+            font-size: 2.8rem;
+            letter-spacing: 3px;
+            margin-bottom: 10px;
+            text-shadow: 0 4px 15px rgba(0, 0, 0, 0.8);
+            color: #00ffcc;
+        }
+
+        .header-section p {
+            font-size: 1.1rem;
+            color: #cccccc;
+            letter-spacing: 1.5px;
+            text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+        }
+
+        /* 网格阵列布局（自适应响应式） */
+        .grid-container {
+            display: grid;
+            /* 自动填充，每列最小250px，最大平分剩余空间 */
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 25px;
+            width: 100%;
+            max-width: 1200px;
+            animation: fadeInUp 0.8s ease-out 0.2s both;
+            margin-bottom: 40px;
+        }
+
+        /* 单个 AI 卡片 */
+        .ai-card {
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 18px;
+            padding: 25px 20px;
+            text-align: center;
+            text-decoration: none;
+            color: #ffffff;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .ai-card:hover {
+            transform: translateY(-10px);
+            background: rgba(0, 0, 0, 0.8);
+            border-color: #00ffcc;
+            box-shadow: 0 15px 35px rgba(0, 255, 204, 0.3);
+        }
+
+        .ai-icon {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            transition: transform 0.3s;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.2));
+        }
+
+        .ai-card:hover .ai-icon {
+            transform: scale(1.15) rotate(5deg);
+        }
+
+        .ai-card h3 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .ai-card p {
+            font-size: 0.85rem;
+            color: #aaaaaa;
+            line-height: 1.4;
+        }
+
+        /* 底部更多按钮 */
+        .more-btn {
+            padding: 15px 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 30px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            outline: none;
+            letter-spacing: 2px;
+            background: transparent;
+            color: #00ffcc;
+            border: 2px dashed rgba(0, 255, 204, 0.5);
+            backdrop-filter: blur(5px);
+            animation: fadeInUp 0.8s ease-out 0.4s both;
+        }
+
+        .more-btn:hover {
+            background: rgba(0, 255, 204, 0.1);
+            border-style: solid;
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.4);
+            transform: translateY(-2px);
+        }
+
+        /* 动画定义 */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <a href="welcome.html" class="back-btn">⬅ 返回控制台</a>
+
+    <div class="header-section">
+        <h1>AI 导航阵列</h1>
+        <p>全球顶级人工智能大语言模型及创作工具直达引擎</p>
+    </div>
+
+    <div class="grid-container">
+
+        <a href="https://gemini.google.com/" target="_blank" class="ai-card">
+            <div class="ai-icon">✨</div>
+            <h3>Google Gemini</h3>
+            <p>谷歌强大的原生多模态大语言模型</p>
+        </a>
+
+        <a href="https://chat.openai.com/" target="_blank" class="ai-card">
+            <div class="ai-icon">🤖</div>
+            <h3>ChatGPT</h3>
+            <p>OpenAI 改变世界的对话式 AI 引擎</p>
+        </a>
+
+        <a href="https://claude.ai/" target="_blank" class="ai-card">
+            <div class="ai-icon">🧠</div>
+            <h3>Claude</h3>
+            <p>Anthropic 打造的安全且极具逻辑的助手</p>
+        </a>
+
+        <a href="https://copilot.microsoft.com/" target="_blank" class="ai-card">
+            <div class="ai-icon">💻</div>
+            <h3>Copilot</h3>
+            <p>微软集成 GPT-4 强大的工作流 AI</p>
+        </a>
+
+        <a href="https://kimi.moonshot.cn/" target="_blank" class="ai-card">
+            <div class="ai-icon">🌙</div>
+            <h3>Kimi</h3>
+            <p>月之暗面：支持超长文本的国产大模型</p>
+        </a>
+
+        <a href="https://www.doubao.com/" target="_blank" class="ai-card">
+            <div class="ai-icon">🥟</div>
+            <h3>豆包</h3>
+            <p>字节跳动推出的全能型免费智能助手</p>
+        </a>
+
+        <a href="https://yiyan.baidu.com/" target="_blank" class="ai-card">
+            <div class="ai-icon">🌐</div>
+            <h3>文心一言</h3>
+            <p>百度研发的知识增强型大语言模型</p>
+        </a>
+
+        <a href="https://tongyi.aliyun.com/" target="_blank" class="ai-card">
+            <div class="ai-icon">☁️</div>
+            <h3>通义千问</h3>
+            <p>阿里云出品的高效企业级语言大模型</p>
+        </a>
+
+        <a href="https://chatglm.cn/" target="_blank" class="ai-card">
+            <div class="ai-icon">💡</div>
+            <h3>智谱清言</h3>
+            <p>基于 ChatGLM 的高能效对话模型</p>
+        </a>
+
+        <a href="https://www.perplexity.ai/" target="_blank" class="ai-card">
+            <div class="ai-icon">🔍</div>
+            <h3>Perplexity</h3>
+            <p>结合即时搜索的未来级 AI 搜索引擎</p>
+        </a>
+
+        <a href="https://www.midjourney.com/" target="_blank" class="ai-card">
+            <div class="ai-icon">🎨</div>
+            <h3>Midjourney</h3>
+            <p>业内顶级的文本生成图像 AI 引擎</p>
+        </a>
+
+        <a href="https://sora.com/" target="_blank" class="ai-card">
+            <div class="ai-icon">🎬</div>
+            <h3>Sora</h3>
+            <p>OpenAI 震撼世界的文生视频模型</p>
+        </a>
+
+    </div>
+
+    <button class="more-btn" onclick="alert('系统提示：自定义添加 AI 模块接口待开放！\n长官可以在此绑定后续的扩充逻辑。')">
+        ➕ 添加更多 AI 工具
+    </button>
+
+</body>
+
+</html>

@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TinyWebServer - 核心架构蓝图</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-image: url('background.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+            overflow-y: auto;
+        }
+
+        /* 滚动条美化 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 204, 0.4);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 255, 204, 0.8);
+        }
+
+        /* 左上角返回按钮 */
+        .back-btn {
+            position: absolute;
+            top: 40px;
+            left: 50px;
+            padding: 10px 25px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 30px;
+            color: #ffffff;
+            font-weight: 600;
+            text-decoration: none;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #00ffcc;
+            color: #00ffcc;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.4);
+            transform: translateX(-5px);
+        }
+
+        /* 主容器 */
+        .layout-container {
+            width: 100%;
+            max-width: 1200px;
+            margin-top: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        /* 上半部分：架构图 + 项目介绍 (左右布局) */
+        .intro-section {
+            display: flex;
+            gap: 30px;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+            animation: fadeInDown 0.8s ease-out;
+            align-items: center;
+        }
+
+        /* 架构图展示区 */
+        .arch-image-box {
+            flex: 1.2;
+            border-radius: 15px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 255, 204, 0.3);
+            box-shadow: 0 0 20px rgba(0, 255, 204, 0.15);
+            position: relative;
+        }
+
+        .arch-image-box img {
+            width: 100%;
+            height: auto;
+            display: block;
+            transition: transform 0.5s ease;
+        }
+
+        .arch-image-box:hover img {
+            transform: scale(1.03);
+            /* 鼠标悬浮时架构图微缩放 */
+        }
+
+        /* 项目文字介绍区 */
+        .intro-text-box {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .intro-text-box h1 {
+            font-size: 2.2rem;
+            color: #00ffcc;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 10px rgba(0, 255, 204, 0.4);
+        }
+
+        .intro-text-box p {
+            font-size: 1rem;
+            color: #dddddd;
+            line-height: 1.8;
+            margin-bottom: 15px;
+            text-align: justify;
+        }
+
+        .highlight {
+            color: #ffffff;
+            font-weight: bold;
+            border-bottom: 1px dashed #00ffcc;
+        }
+
+        /* 下半部分：模块导航网格 */
+        .modules-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            /* 固定3列 */
+            gap: 25px;
+            animation: fadeInUp 0.8s ease-out 0.3s both;
+        }
+
+        /* 模块按钮卡片 */
+        .module-btn {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 15px;
+            padding: 25px 20px;
+            text-align: center;
+            text-decoration: none;
+            color: #ffffff;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .module-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: #00ffcc;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .module-btn:hover {
+            background: rgba(0, 255, 204, 0.1);
+            border-color: #00ffcc;
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 255, 204, 0.2);
+        }
+
+        .module-btn:hover::before {
+            opacity: 1;
+        }
+
+        .module-icon {
+            font-size: 2.5rem;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.3));
+            transition: transform 0.3s;
+        }
+
+        .module-btn:hover .module-icon {
+            transform: scale(1.1);
+            filter: drop-shadow(0 0 12px rgba(0, 255, 204, 0.6));
+        }
+
+        .module-btn h3 {
+            font-size: 1.2rem;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .module-btn p {
+            font-size: 0.85rem;
+            color: #aaaaaa;
+        }
+
+        /* 动画定义 */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 900px) {
+            .intro-section {
+                flex-direction: column;
+            }
+
+            .modules-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .modules-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <a href="welcome.html" class="back-btn">⬅ 返回控制台</a>
+
+    <div class="layout-container">
+
+        <div class="intro-section">
+            <div class="arch-image-box">
+                <img src="frame.jpg" alt="TinyWebServer 整体架构图">
+            </div>
+
+            <div class="intro-text-box">
+                <h1>核心架构蓝图</h1>
+                <p>TinyWebServer 是一款基于 <span class="highlight">C++11</span> 打造的高性能轻量级 Web 服务器。系统底层采用 <span
+                        class="highlight">半同步/半反应堆 (Half-Sync/Half-Reactive)</span> 并发模型，完美分离了 I/O 监听与业务处理。</p>
+                <p>在网络层，依托 <span class="highlight">Epoll 多路复用 (LT/ET双模式)</span> 与非阻塞 Socket，轻松应对海量并发洪峰。</p>
+                <p>经过现代化重构，本系统已将传统链表替换为 <span class="highlight">O(log N) 最小堆定时器</span>，采用 std::vector 实现 <span
+                        class="highlight">弹性缓冲区</span> 防御内存溢出，并引入了 SHA-256 加盐算法保障数据库安全，是一套兼顾极速与坚固的工业级后台引擎。</p>
+            </div>
+        </div>
+
+        <div class="modules-grid">
+
+            <a href="module_http.html" class="module-btn">
+                <div class="module-icon">🌐</div>
+                <h3>HTTP 状态机</h3>
+                <p>主从状态机解析报文，std::vector 弹性缓冲</p>
+            </a>
+
+            <a href="module_timer.html" class="module-btn">
+                <div class="module-icon">⏱️</div>
+                <h3>最小堆定时器</h3>
+                <p>O(log N) 极速清理机制，std::bind 回调封装</p>
+            </a>
+
+            <a href="module_threadpool.html" class="module-btn">
+                <div class="module-icon">⚙️</div>
+                <h3>高并发线程池</h3>
+                <p>C++11 互斥锁与条件变量，Reactor/Proactor 调度</p>
+            </a>
+
+            <a href="module_db.html" class="module-btn">
+                <div class="module-icon">🗄️</div>
+                <h3>数据库连接池</h3>
+                <p>RAII 机制管理连接，SHA-256 密码加盐加密存储</p>
+            </a>
+
+            <a href="module_epoll.html" class="module-btn">
+                <div class="module-icon">⚡</div>
+                <h3>Epoll 事件路由</h3>
+                <p>边缘触发(ET)高性能收发，统一事件源信号处理</p>
+            </a>
+
+            <a href="module_log.html" class="module-btn">
+                <div class="module-icon">📝</div>
+                <h3>异步日志系统</h3>
+                <p>单例模式阻塞队列，多线程安全日志落盘</p>
+            </a>
+
+        </div>
+
+    </div>
+
+</body>
+
+</html>

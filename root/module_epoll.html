@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TinyWebServer - Epoll 事件路由模块</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-image: url('background.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+            overflow-y: auto;
+        }
+
+        /* 滚动条美化 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 204, 0.4);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 255, 204, 0.8);
+        }
+
+        /* 左上角返回按钮 */
+        .back-btn {
+            position: absolute;
+            top: 40px;
+            left: 50px;
+            padding: 10px 25px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 30px;
+            color: #ffffff;
+            font-weight: 600;
+            text-decoration: none;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #00ffcc;
+            color: #00ffcc;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.4);
+            transform: translateX(-5px);
+        }
+
+        /* 主容器 */
+        .layout-container {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+            animation: fadeInScale 0.8s ease-out;
+            overflow: hidden;
+        }
+
+        /* 左侧：架构图展示区 */
+        .arch-image-box {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        .arch-image-box img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 255, 204, 0.2);
+            transition: transform 0.5s ease;
+            border: 1px solid rgba(0, 255, 204, 0.3);
+        }
+
+        .arch-image-box:hover img {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(0, 255, 204, 0.4);
+        }
+
+        /* 右侧：硬核文字介绍区 */
+        .intro-text-box {
+            flex: 1.2;
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .intro-text-box h1 {
+            font-size: 2.5rem;
+            color: #00ffcc;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 10px rgba(0, 255, 204, 0.4);
+        }
+
+        .intro-text-box .subtitle {
+            font-size: 1.1rem;
+            color: #aaaaaa;
+            margin-bottom: 30px;
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 15px;
+        }
+
+        .intro-text-box p {
+            font-size: 1rem;
+            color: #dddddd;
+            line-height: 1.8;
+            margin-bottom: 20px;
+            text-align: justify;
+        }
+
+        /* 特性列表项 */
+        .feature-list {
+            list-style: none;
+            margin-top: 10px;
+        }
+
+        .feature-list li {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+
+        .feature-list li::before {
+            content: '⚡';
+            position: absolute;
+            left: 0;
+            top: 2px;
+            font-size: 1.1rem;
+            filter: drop-shadow(0 0 5px rgba(0, 255, 204, 0.8));
+        }
+
+        .highlight {
+            color: #ffffff;
+            font-weight: bold;
+            text-shadow: 0 0 8px rgba(0, 255, 204, 0.6);
+        }
+
+        /* 动画定义 */
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 900px) {
+            .layout-container {
+                flex-direction: column;
+            }
+
+            .arch-image-box {
+                border-right: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                padding: 30px;
+            }
+
+            .intro-text-box {
+                padding: 30px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <a href="frame.html" class="back-btn">⬅ 返回架构蓝图</a>
+
+    <div class="layout-container">
+
+        <div class="arch-image-box">
+            <img src="epoll_arch.jpg" alt="Epoll 事件路由架构图">
+        </div>
+
+        <div class="intro-text-box">
+            <h1>Epoll 事件路由机制</h1>
+            <div class="subtitle">I/O Multiplexing & Unified Event Source</div>
+
+            <p>在面对海量客户端同时在线时，传统的 <code>select</code> 或 <code>poll</code> 模型因轮询遍历带来的性能损耗而显得力不从心。要想跨越 C10K
+                门槛，服务器必须具备极其敏锐的“事件雷达”。</p>
+
+            <p>本系统网络层全面拥抱了 Linux 平台最高效的 <span class="highlight">Epoll 多路复用技术</span>，构建了一套零延迟、高吞吐的事件路由枢纽：</p>
+
+            <ul class="feature-list">
+                <li><span class="highlight">红黑树与双向链表引擎：</span> Epoll 在内核态使用红黑树管理数十万计的监听套接字（fd），并通过回调机制将就绪事件推入双向链表，实现了
+                    <code>epoll_wait</code> 接近 O(1) 的超高事件分发效率。</li>
+                <li><span class="highlight">ET (边缘触发) 高速模式：</span> 相比 LT（水平触发），系统将读写套接字配置为更狂暴的 ET 模式配合非阻塞
+                    I/O。状态机仅在数据状态跳变的瞬间被唤醒，最大程度减少了内核态与用户态的上下文切换，压榨系统极限性能。</li>
+                <li><span class="highlight">EPOLLONESHOT 线程安全保障：</span> 针对同一个 Socket 可能会被并发触发的问题，系统为所有连接注册了
+                    <code>EPOLLONESHOT</code> 事件，确保任一时刻仅有一个工作线程操作该请求，从源头上斩断了线程安全隐患。</li>
+                <li><span class="highlight">统一事件源设计：</span> 通过 <code>socketpair</code> 创建全双工管道，巧妙地将系统异步信号（如 SIGALRM
+                    心跳、SIGTERM 终止）转化为可读事件，无缝并入 Epoll 监听矩阵，实现了网络 I/O 与系统信号处理的完美统一。</li>
+            </ul>
+        </div>
+
+    </div>
+
+</body>
+
+</html>

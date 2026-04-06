@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TinyWebServer - 数据库连接池模块</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-image: url('background.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 40px 20px;
+            overflow-y: auto;
+        }
+
+        /* 滚动条美化 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0, 255, 204, 0.4);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0, 255, 204, 0.8);
+        }
+
+        /* 左上角返回按钮 */
+        .back-btn {
+            position: absolute;
+            top: 40px;
+            left: 50px;
+            padding: 10px 25px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 30px;
+            color: #ffffff;
+            font-weight: 600;
+            text-decoration: none;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+
+        .back-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: #00ffcc;
+            color: #00ffcc;
+            box-shadow: 0 0 15px rgba(0, 255, 204, 0.4);
+            transform: translateX(-5px);
+        }
+
+        /* 主容器 */
+        .layout-container {
+            width: 100%;
+            max-width: 1200px;
+            display: flex;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);
+            animation: fadeInScale 0.8s ease-out;
+            overflow: hidden;
+        }
+
+        /* 左侧：架构图展示区 */
+        .arch-image-box {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.4);
+            padding: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-right: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        .arch-image-box img {
+            width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 255, 204, 0.2);
+            transition: transform 0.5s ease;
+            border: 1px solid rgba(0, 255, 204, 0.3);
+        }
+
+        .arch-image-box:hover img {
+            transform: scale(1.05);
+            box-shadow: 0 15px 40px rgba(0, 255, 204, 0.4);
+        }
+
+        /* 右侧：硬核文字介绍区 */
+        .intro-text-box {
+            flex: 1.2;
+            padding: 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .intro-text-box h1 {
+            font-size: 2.5rem;
+            color: #00ffcc;
+            margin-bottom: 10px;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 10px rgba(0, 255, 204, 0.4);
+        }
+
+        .intro-text-box .subtitle {
+            font-size: 1.1rem;
+            color: #aaaaaa;
+            margin-bottom: 30px;
+            letter-spacing: 1px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 15px;
+        }
+
+        .intro-text-box p {
+            font-size: 1rem;
+            color: #dddddd;
+            line-height: 1.8;
+            margin-bottom: 20px;
+            text-align: justify;
+        }
+
+        /* 特性列表项 */
+        .feature-list {
+            list-style: none;
+            margin-top: 10px;
+        }
+
+        .feature-list li {
+            position: relative;
+            padding-left: 30px;
+            margin-bottom: 15px;
+            font-size: 0.95rem;
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+
+        .feature-list li::before {
+            content: '🗄️';
+            position: absolute;
+            left: 0;
+            top: 2px;
+            font-size: 1.1rem;
+            filter: drop-shadow(0 0 5px rgba(0, 255, 204, 0.8));
+        }
+
+        .highlight {
+            color: #ffffff;
+            font-weight: bold;
+            text-shadow: 0 0 8px rgba(0, 255, 204, 0.6);
+        }
+
+        /* 动画定义 */
+        @keyframes fadeInScale {
+            from {
+                opacity: 0;
+                transform: scale(0.95) translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 900px) {
+            .layout-container {
+                flex-direction: column;
+            }
+
+            .arch-image-box {
+                border-right: none;
+                border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+                padding: 30px;
+            }
+
+            .intro-text-box {
+                padding: 30px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <a href="frame.html" class="back-btn">⬅ 返回架构蓝图</a>
+
+    <div class="layout-container">
+
+        <div class="arch-image-box">
+            <img src="db_arch.jpg" alt="数据库连接池架构图">
+        </div>
+
+        <div class="intro-text-box">
+            <h1>数据库连接池与安全模块</h1>
+            <div class="subtitle">DB Connection Pool & SHA-256 Security</div>
+
+            <p>在传统的 Web 后端应用中，数据库连接的创建与销毁（TCP 三次握手、MySQL 鉴权等）是极其沉重的 I/O 开销。在高并发场景下，频繁的连接申请会直接压垮数据库引擎。</p>
+
+            <p>本系统摒弃了“一请求一连接”的低效模式，设计了全局的 <span class="highlight">MySQL 连接池</span>，并在用户数据安全方面引入了现代密码学防御体系：</p>
+
+            <ul class="feature-list">
+                <li><span class="highlight">单例模式与池化技术：</span> 系统启动时预先与 MySQL 建立并维护指定数量的 Socket
+                    连接。客户端请求到来时，直接从池中取出空闲连接，用完即还，实现了数据库 I/O 开销的零延迟。</li>
+                <li><span class="highlight">RAII 连接管理机制：</span> 结合 C++ 的 RAII（资源获取即初始化）特性，封装了
+                    <code>connectionRAII</code> 类。通过对象的构造与析构，自动完成连接的获取与归还，从根源上杜绝了数据库连接泄漏。</li>
+                <li><span class="highlight">信号量与互斥锁：</span> 采用 C++11 的 <code>std::mutex</code> 与 <code>sem_t</code>
+                    控制并发访问，确保多个工作线程在竞争获取连接时绝对的线程安全。</li>
+                <li><span class="highlight">SHA-256 加盐防御加密：</span> 针对原版系统明文存储密码的安全漏洞，重构了鉴权体系。采用 SHA-256 算法，并结合“用户名（动态盐）+
+                    固定字符串（Pepper）”进行不可逆混合加密，完美抵御彩虹表（Rainbow Table）与拖库攻击。</li>
+            </ul>
+        </div>
+
+    </div>
+
+</body>
+
+</html>

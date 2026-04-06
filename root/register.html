@@ -1,17 +1,22 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TinyWebServer - 系统注册</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-image: url('background.png'); 
-            background-size: cover;      
-            background-position: center; 
+            background-image: url('background.png');
+            background-size: cover;
+            background-position: center;
             background-repeat: no-repeat;
             background-attachment: fixed;
             color: #ffffff;
@@ -19,62 +24,70 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow: hidden; 
+            overflow: hidden;
         }
 
+        /* 加深了面板的背景不透明度，提升文字对比度 */
         .register-card {
-            background: rgba(0, 0, 0, 0.45); 
-            backdrop-filter: blur(15px);     
-            -webkit-backdrop-filter: blur(15px); 
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
             border-radius: 20px;
-            padding: 50px 60px;
-            width: 400px; 
-            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
+            padding: 40px 50px;
+            width: 420px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8);
             text-align: center;
-            animation: fadeIn 0.8s ease-out; 
-            transition: transform 0.1s; /* 用于配合 JS 触发震动 */
+            animation: fadeIn 0.8s ease-out;
+            transition: transform 0.1s;
         }
 
-        /* 专门用于 JS 触发的震动动画类 */
         .shake-animation {
             animation: shake 0.4s ease-in-out;
         }
 
         h1 {
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             letter-spacing: 2px;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             color: #ffffff;
-            text-shadow: 0 0 15px rgba(255, 255, 255, 0.5); 
+            /* 增强文字阴影，防止亮色背景吞噬字体 */
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
         }
 
-        .input-group { margin-bottom: 20px; }
+        .input-group {
+            margin-bottom: 18px;
+        }
 
-        input[type="text"], input[type="password"] {
+        input[type="text"],
+        input[type="password"] {
             width: 100%;
-            padding: 15px 20px;
-            background: rgba(255, 255, 255, 0.08); 
-            border: 1px solid rgba(255, 255, 255, 0.2); 
+            padding: 14px 20px;
+            /* 输入框底色改为暗色调，以衬托白色字体 */
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 10px;
             color: #ffffff;
-            font-size: 1rem;
+            font-size: 0.95rem;
             outline: none;
             transition: all 0.3s ease;
             letter-spacing: 1px;
         }
 
-        input::placeholder { color: #aaaaaa; }
+        /* 占位符颜色稍微调亮一点，确保在暗色输入框中可见 */
+        input::placeholder {
+            color: #cccccc;
+        }
 
         input:focus {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(0, 0, 0, 0.6);
             border-color: #00ffcc;
             box-shadow: 0 0 15px rgba(0, 255, 204, 0.4);
         }
 
         button {
             width: 100%;
-            padding: 15px;
+            padding: 14px;
             margin-top: 10px;
             font-size: 1.1rem;
             font-weight: 600;
@@ -82,50 +95,71 @@
             cursor: pointer;
             transition: all 0.3s ease;
             outline: none;
-            letter-spacing: 2px;
-            background: rgba(0, 255, 204, 0.7); 
+            letter-spacing: 4px;
+            background: rgba(0, 255, 204, 0.7);
             color: #121212;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(5px);
+            text-shadow: none;
+            /* 按钮字用深色，不需要阴影 */
         }
 
         button:hover {
-            background: rgba(0, 255, 204, 1); 
+            background: rgba(0, 255, 204, 1);
             box-shadow: 0 0 20px rgba(0, 255, 204, 0.6);
-            transform: translateY(-2px); 
+            transform: translateY(-2px);
         }
 
-        /* 动态显示的错误提示信息样式 */
         #error-message {
             margin-top: 20px;
-            color: #ff4d4d; 
-            font-size: 0.95rem;
+            color: #ff4d4d;
+            font-size: 0.9rem;
             font-weight: bold;
-            letter-spacing: 1px;
-            text-shadow: 0 0 10px rgba(255, 77, 77, 0.4); 
-            display: none; /* 初始隐藏，由 JS 控制显示 */
-            text-align: left; /* 左对齐方便多行阅读 */
+            display: none;
+            text-align: left;
+            line-height: 1.5;
+            text-shadow: 0 1px 5px rgba(0, 0, 0, 0.8);
+            /* 让错误提示在亮背景下更醒目 */
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: scale(0.95); }
-            to { opacity: 1; transform: scale(1); }
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
         }
 
         @keyframes shake {
-            0% { transform: translateX(0); }
-            25% { transform: translateX(-8px); }
-            50% { transform: translateX(8px); }
-            75% { transform: translateX(-8px); }
-            100% { transform: translateX(0); }
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-8px);
+            }
+
+            50% {
+                transform: translateX(8px);
+            }
+
+            75% {
+                transform: translateX(-8px);
+            }
         }
     </style>
 </head>
+
 <body>
 
     <div class="register-card" id="card-container">
         <h1>新用户注册</h1>
-        
+
         <form action="register.cgi" method="post" onsubmit="return validateForm()">
             <div class="input-group">
                 <input type="text" id="username" name="user" placeholder="请输入用户名" autocomplete="off">
@@ -133,7 +167,10 @@
             <div class="input-group">
                 <input type="password" id="password" name="password" placeholder="请输入注册密码">
             </div>
-            <button type="submit">立 即 注 册</button>
+            <div class="input-group">
+                <input type="password" id="re_password" placeholder="请再次输入密码以确认">
+            </div>
+            <button type="submit">注 册</button>
         </form>
 
         <div id="error-message"></div>
@@ -143,59 +180,59 @@
         function validateForm() {
             const user = document.getElementById('username').value;
             const psw = document.getElementById('password').value;
+            const re_psw = document.getElementById('re_password').value;
             const errMsg = document.getElementById('error-message');
             const card = document.getElementById('card-container');
 
-            // 辅助函数：重置并触发卡片震动动画
             function triggerError(msg) {
                 errMsg.innerHTML = "⚠️ 提示：<br>" + msg;
                 errMsg.style.display = 'block';
-                
-                // 移除并重新添加动画类，以便连续点击错误时每次都震动
                 card.classList.remove('shake-animation');
-                void card.offsetWidth; // 触发浏览器重绘 (Magic Code)
+                void card.offsetWidth;
                 card.classList.add('shake-animation');
             }
 
-            // 校验 1：用户名不能为空
-            if (user.trim() === "") {
-                triggerError("用户名不能为空！");
+            // 1. 非空检查
+            if (!user.trim() || !psw || !re_psw) {
+                triggerError("所有字段均为必填项！");
                 return false;
             }
 
-            // 校验 2：计算用户名长度（中文算2，英文算1）
+            // 2. 用户名校验
+            // 规则：两个汉字或四个英文字母以上
+            // 实现逻辑：遍历字符串，遇到ASCII范围外的字符（如中文）记长度为2，普通英文字符记为1。总长度必须 >= 4。
             let userLength = 0;
             for (let i = 0; i < user.length; i++) {
-                // 如果字符编码大于 255，通常认为是宽字符（比如中文）
-                if (user.charCodeAt(i) > 255) {
-                    userLength += 2;
-                } else {
-                    userLength += 1;
-                }
+                userLength += (user.charCodeAt(i) > 255) ? 2 : 1;
             }
-
-            // 总长度必须大于等于 4（即：至少2个中文，或4个英文，或1中2英）
             if (userLength < 4) {
-                triggerError("用户名长度不足。<br>需至少包含2个汉字或4个英文字母。");
+                triggerError("用户名长度不足！<br>需至少包含2个汉字或4个英文字母。");
                 return false;
             }
 
-            // 校验 3：密码复杂度校验
-            // (?=.*\d)     -> 必须包含数字
-            // (?=.*[a-z])  -> 必须包含小写字母
-            // (?=.*[A-Z])  -> 必须包含大写字母
-            // .{8,}        -> 长度至少为 8
-            const pwdRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
-            
+            // 3. 密码复杂度校验
+            // 正则解释：
+            // ^              : 匹配字符串开始
+            // (?=.*[a-zA-Z]) : 正向先行断言（Lookahead），确保后面存在至少一个字母（大小写不限）
+            // (?=.*\d)       : 正向先行断言，确保后面存在至少一个数字
+            // .{8,}          : 匹配任意字符（包含特殊字符），至少出现 8 次
+            // $              : 匹配字符串结束
+            const pwdRegex = /^(?=.*[a-zA-Z])(?=.*\d).{8,}$/;
             if (!pwdRegex.test(psw)) {
-                triggerError("密码强度不达标！<br>• 长度至少为 8 位<br>• 必须包含数字<br>• 必须包含大写字母<br>• 必须包含小写字母");
+                triggerError("密码强度不达标！<br>• 长度至少为 8 位<br>• 必须同时包含数字和英文（允许特殊字符）");
                 return false;
             }
 
-            // 如果全部通过校验，隐藏错误信息并放行表单发往后端
+            // 4. 两次密码一致性校验
+            if (psw !== re_psw) {
+                triggerError("两次输入的密码不一致！");
+                return false;
+            }
+
             errMsg.style.display = 'none';
-            return true; 
+            return true;
         }
     </script>
 </body>
+
 </html>

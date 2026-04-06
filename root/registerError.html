@@ -1,17 +1,22 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TinyWebServer - 注册失败</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
         body {
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background-image: url('background.png'); 
-            background-size: cover;      
-            background-position: center; 
+            background-image: url('background.png');
+            background-size: cover;
+            background-position: center;
             background-repeat: no-repeat;
             background-attachment: fixed;
             color: #ffffff;
@@ -19,63 +24,68 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow: hidden; 
+            overflow: hidden;
         }
 
+        /* 失败页面的面板：底色同样加深，边框带红色警示 */
         .register-card {
-            background: rgba(0, 0, 0, 0.45); 
-            backdrop-filter: blur(15px);     
-            -webkit-backdrop-filter: blur(15px); 
-            /* 失败页面的专属红色警示边框 */
-            border: 1px solid rgba(255, 77, 77, 0.3); 
+            background: rgba(0, 0, 0, 0.75);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 77, 77, 0.5);
             border-radius: 20px;
-            padding: 50px 60px;
-            width: 400px; 
-            box-shadow: 0 15px 40px rgba(255, 77, 77, 0.15), 0 25px 50px rgba(0, 0, 0, 0.6);
+            padding: 40px 50px;
+            width: 420px;
+            box-shadow: 0 15px 40px rgba(255, 77, 77, 0.2), 0 25px 50px rgba(0, 0, 0, 0.8);
             text-align: center;
-            /* 初始载入时触发一次震动提醒 */
-            animation: shake 0.5s ease-out; 
+            animation: shake 0.5s ease-out;
+            transition: transform 0.1s;
         }
 
-        /* 专门用于 JS 触发的震动动画类 */
         .shake-animation {
             animation: shake 0.4s ease-in-out;
         }
 
         h1 {
-            font-size: 2.5rem;
+            font-size: 2.2rem;
             letter-spacing: 2px;
-            margin-bottom: 30px;
-            color: #ffffff;
-            text-shadow: 0 0 15px rgba(255, 255, 255, 0.5); 
+            margin-bottom: 25px;
+            color: #ff4d4d;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
         }
 
-        .input-group { margin-bottom: 20px; }
+        .input-group {
+            margin-bottom: 18px;
+        }
 
-        input[type="text"], input[type="password"] {
+        input[type="text"],
+        input[type="password"] {
             width: 100%;
-            padding: 15px 20px;
-            background: rgba(255, 255, 255, 0.08); 
-            border: 1px solid rgba(255, 255, 255, 0.2); 
+            padding: 14px 20px;
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.2);
             border-radius: 10px;
             color: #ffffff;
-            font-size: 1rem;
+            font-size: 0.95rem;
             outline: none;
             transition: all 0.3s ease;
             letter-spacing: 1px;
         }
 
-        input::placeholder { color: #aaaaaa; }
+        input::placeholder {
+            color: #cccccc;
+        }
 
         input:focus {
-            background: rgba(255, 255, 255, 0.15);
-            border-color: #00ffcc;
-            box-shadow: 0 0 15px rgba(0, 255, 204, 0.4);
+            background: rgba(0, 0, 0, 0.6);
+            border-color: #ff4d4d;
+            /* 失败页面聚焦变为红色 */
+            box-shadow: 0 0 15px rgba(255, 77, 77, 0.4);
         }
 
         button {
             width: 100%;
-            padding: 15px;
+            padding: 14px;
             margin-top: 10px;
             font-size: 1.1rem;
             font-weight: 600;
@@ -83,104 +93,132 @@
             cursor: pointer;
             transition: all 0.3s ease;
             outline: none;
-            letter-spacing: 2px;
-            background: rgba(0, 255, 204, 0.7); 
-            color: #121212;
+            letter-spacing: 4px;
+            background: rgba(255, 77, 77, 0.8);
+            /* 失败页面按钮使用红色 */
+            color: #ffffff;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(5px);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
         }
 
         button:hover {
-            background: rgba(0, 255, 204, 1); 
-            box-shadow: 0 0 20px rgba(0, 255, 204, 0.6);
-            transform: translateY(-2px); 
+            background: rgba(255, 77, 77, 1);
+            box-shadow: 0 0 20px rgba(255, 77, 77, 0.6);
+            transform: translateY(-2px);
         }
 
-        /* 错误提示信息样式 */
         #error-message {
             margin-top: 20px;
-            color: #ff4d4d; 
-            font-size: 0.95rem;
+            color: #ff4d4d;
+            font-size: 0.9rem;
             font-weight: bold;
-            letter-spacing: 1px;
-            text-shadow: 0 0 10px rgba(255, 77, 77, 0.4); 
-            text-align: left; 
-            /* 注意：这里默认是 display: block; 因为一进来就是因为后端报错才进来的 */
-            display: block; 
+            display: block;
+            /* 失败页面默认显示错误信息 */
+            text-align: left;
+            line-height: 1.5;
+            text-shadow: 0 1px 5px rgba(0, 0, 0, 0.8);
         }
 
         @keyframes shake {
-            0% { transform: translateX(0); }
-            25% { transform: translateX(-8px); }
-            50% { transform: translateX(8px); }
-            75% { transform: translateX(-8px); }
-            100% { transform: translateX(0); }
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-8px);
+            }
+
+            50% {
+                transform: translateX(8px);
+            }
+
+            75% {
+                transform: translateX(-8px);
+            }
         }
     </style>
 </head>
+
 <body>
 
     <div class="register-card" id="card-container">
-        <h1>重新注册</h1>
-        
+        <h1>注册失败</h1>
+
         <form action="register.cgi" method="post" onsubmit="return validateForm()">
             <div class="input-group">
                 <input type="text" id="username" name="user" placeholder="请更换新的用户名" autocomplete="off">
             </div>
             <div class="input-group">
-                <input type="password" id="password" name="password" placeholder="请重新设置密码">
+                <input type="password" id="password" name="password" placeholder="请设置新密码">
             </div>
-            <button type="submit">立 即 注 册</button>
+            <div class="input-group">
+                <input type="password" id="re_password" placeholder="请再次确认新密码">
+            </div>
+            <button type="submit">重 新 注 册</button>
         </form>
 
-        <div id="error-message">⚠️ 提示：用户名在数据库中已存在，请更换！</div>
+        <div id="error-message">⚠️ 提示：该用户名在数据库中已存在，请更换！</div>
     </div>
 
     <script>
         function validateForm() {
             const user = document.getElementById('username').value;
             const psw = document.getElementById('password').value;
+            const re_psw = document.getElementById('re_password').value;
             const errMsg = document.getElementById('error-message');
             const card = document.getElementById('card-container');
 
             function triggerError(msg) {
                 errMsg.innerHTML = "⚠️ 提示：<br>" + msg;
                 errMsg.style.display = 'block';
-                
                 card.classList.remove('shake-animation');
-                void card.offsetWidth; 
+                void card.offsetWidth;
                 card.classList.add('shake-animation');
             }
 
-            if (user.trim() === "") {
-                triggerError("用户名不能为空！");
+            // 1. 非空检查
+            if (!user.trim() || !psw || !re_psw) {
+                triggerError("所有字段均为必填项！");
                 return false;
             }
 
+            // 2. 用户名校验
+            // 规则：两个汉字或四个英文字母以上
+            // 实现逻辑：遍历字符串，遇到ASCII范围外的字符（如中文）记长度为2，普通英文字符记为1。总长度必须 >= 4。
             let userLength = 0;
             for (let i = 0; i < user.length; i++) {
-                if (user.charCodeAt(i) > 255) {
-                    userLength += 2;
-                } else {
-                    userLength += 1;
-                }
+                userLength += (user.charCodeAt(i) > 255) ? 2 : 1;
             }
-
             if (userLength < 4) {
-                triggerError("用户名长度不足。<br>需至少包含2个汉字或4个英文字母。");
+                triggerError("用户名长度不足！<br>需至少包含2个汉字或4个英文字母。");
                 return false;
             }
 
-            const pwdRegex = /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
-            
+            // 3. 密码复杂度校验
+            // 正则解释：
+            // ^              : 匹配字符串开始
+            // (?=.*[a-zA-Z]) : 正向先行断言（Lookahead），确保后面存在至少一个字母（大小写不限）
+            // (?=.*\d)       : 正向先行断言，确保后面存在至少一个数字
+            // .{8,}          : 匹配任意字符（包含特殊字符），至少出现 8 次
+            // $              : 匹配字符串结束
+            const pwdRegex = /^(?=.*[a-zA-Z])(?=.*\d).{8,}$/;
             if (!pwdRegex.test(psw)) {
-                triggerError("密码强度不达标！<br>• 长度至少为 8 位<br>• 必须包含数字<br>• 必须包含大写字母<br>• 必须包含小写字母");
+                triggerError("密码强度不达标！<br>• 长度至少为 8 位<br>• 必须同时包含数字和英文（允许特殊字符）");
+                return false;
+            }
+
+            // 4. 两次密码一致性校验
+            if (psw !== re_psw) {
+                triggerError("两次输入的密码不一致！");
                 return false;
             }
 
             errMsg.style.display = 'none';
-            return true; 
+            return true;
         }
     </script>
 </body>
+
 </html>

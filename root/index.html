@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -17,36 +18,45 @@
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
             /* === 【核心修改：设置背景图】 === */
             /* 请确保文件名与 root 目录下的实际文件名完全一致 */
-            background-image: url('background.png'); 
-            
+            background-image: url('background.png');
+
             /* 背景图样式配置 */
-            background-size: cover;      /* 图片覆盖整个屏幕，不留白 */
-            background-position: center; /* 图片居中显示 */
-            background-repeat: no-repeat;/* 不平铺 */
-            background-attachment: fixed;/* 背景固定，不随滚动条滚动（视差效果） */
-            
+            background-size: cover;
+            /* 图片覆盖整个屏幕，不留白 */
+            background-position: center;
+            /* 图片居中显示 */
+            background-repeat: no-repeat;
+            /* 不平铺 */
+            background-attachment: fixed;
+            /* 背景固定，不随滚动条滚动（视差效果） */
+
             /* 布局配置 */
             color: #ffffff;
             height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow: hidden; /* 防止出现滚动条 */
+            overflow: hidden;
+            /* 防止出现滚动条 */
         }
 
         /* 中央悬浮卡片 (Glassmorphism 拟态玻璃风格) */
         .welcome-card {
             /* === 【核心修改：增强毛玻璃效果以适应复杂背景】 === */
-            background: rgba(0, 0, 0, 0.45); /* 加深一层半透明黑色遮罩 */
-            backdrop-filter: blur(15px);     /* 增强背景模糊程度，确保文字清晰 */
-            -webkit-backdrop-filter: blur(15px); /* 兼容 Safari */
-            
+            background: rgba(0, 0, 0, 0.45);
+            /* 加深一层半透明黑色遮罩 */
+            backdrop-filter: blur(15px);
+            /* 增强背景模糊程度，确保文字清晰 */
+            -webkit-backdrop-filter: blur(15px);
+            /* 兼容 Safari */
+
             border: 1px solid rgba(255, 255, 255, 0.1);
             border-radius: 20px;
             padding: 60px 70px;
             box-shadow: 0 25px 50px rgba(0, 0, 0, 0.6);
             text-align: center;
-            animation: fadeIn 1.2s ease-out; /* 载入动画 */
+            animation: fadeIn 1.2s ease-out;
+            /* 载入动画 */
         }
 
         /* 标题样式 - 增加发光特效提升辨识度 */
@@ -55,7 +65,8 @@
             letter-spacing: 2px;
             margin-bottom: 15px;
             color: #ffffff;
-            text-shadow: 0 0 20px rgba(255, 255, 255, 0.6); /* 白色发光 */
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.6);
+            /* 白色发光 */
         }
 
         /* 副标题样式 */
@@ -87,21 +98,25 @@
 
         /* 登录按钮（拟态主色调） */
         .btn-login {
-            background: rgba(0, 122, 204, 0.7); /* 半透明蓝色 */
+            background: rgba(0, 122, 204, 0.7);
+            /* 半透明蓝色 */
             color: #ffffff;
             border: 1px solid rgba(255, 255, 255, 0.2);
             backdrop-filter: blur(5px);
         }
 
         .btn-login:hover {
-            background: rgba(0, 122, 204, 1); /* 悬浮时变成全色 */
+            background: rgba(0, 122, 204, 1);
+            /* 悬浮时变成全色 */
             box-shadow: 0 0 25px rgba(0, 122, 204, 0.7);
-            transform: translateY(-4px) scale(1.03); /* 微微放大上浮 */
+            transform: translateY(-4px) scale(1.03);
+            /* 微微放大上浮 */
         }
 
         /* 注册按钮（拟态线框风格） */
         .btn-register {
-            background: rgba(255, 255, 255, 0.05); /* 极具质感的极淡透明 */
+            background: rgba(255, 255, 255, 0.05);
+            /* 极具质感的极淡透明 */
             color: #ffffff;
             border: 1px solid rgba(255, 255, 255, 0.4);
             backdrop-filter: blur(5px);
@@ -116,17 +131,25 @@
 
         /* 简单的载入动画定义 */
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
+
 <body>
 
     <div class="welcome-card">
         <h1>TinyWebServer</h1>
         <p class="subtitle">高性能 C++ Linux Web 服务器引擎</p>
-        
+
         <div class="btn-group">
             <form action="log.html" method="post">
                 <button type="submit" class="btn-login">已有账号 (Sign In)</button>
@@ -139,4 +162,5 @@
     </div>
 
 </body>
+
 </html>
